@@ -23,7 +23,7 @@ type CreateTodoParams struct {
 }
 
 func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error) {
-	row := q.db.QueryRowContext(ctx, createTodo, arg.Title, arg.Done)
+	row := q.db.QueryRow(ctx, createTodo, arg.Title, arg.Done)
 	var i Todo
 	err := row.Scan(&i.ID, &i.Title, &i.Done)
 	return i, err
@@ -35,7 +35,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteTodo(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteTodo, id)
+	_, err := q.db.Exec(ctx, deleteTodo, id)
 	return err
 }
 
@@ -45,7 +45,7 @@ WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetTodo(ctx context.Context, id int64) (Todo, error) {
-	row := q.db.QueryRowContext(ctx, getTodo, id)
+	row := q.db.QueryRow(ctx, getTodo, id)
 	var i Todo
 	err := row.Scan(&i.ID, &i.Title, &i.Done)
 	return i, err
@@ -56,7 +56,7 @@ SELECT id, title, done FROM todos
 `
 
 func (q *Queries) ListTodos(ctx context.Context) ([]Todo, error) {
-	rows, err := q.db.QueryContext(ctx, listTodos)
+	rows, err := q.db.Query(ctx, listTodos)
 	if err != nil {
 		return nil, err
 	}
@@ -68,9 +68,6 @@ func (q *Queries) ListTodos(ctx context.Context) ([]Todo, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -90,7 +87,7 @@ type UpdateTodoParams struct {
 }
 
 func (q *Queries) UpdateTodo(ctx context.Context, arg UpdateTodoParams) (Todo, error) {
-	row := q.db.QueryRowContext(ctx, updateTodo, arg.Title, arg.Done, arg.ID)
+	row := q.db.QueryRow(ctx, updateTodo, arg.Title, arg.Done, arg.ID)
 	var i Todo
 	err := row.Scan(&i.ID, &i.Title, &i.Done)
 	return i, err
