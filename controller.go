@@ -3,13 +3,11 @@ package todo
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/arganaphangquestian/gotodo/data"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/render"
+	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -35,7 +33,7 @@ func (s *TodoService) GetTodos(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *TodoService) GetTodo(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		json.NewEncoder(w).Encode(response{
 			Message: "Failed Get Todo",
@@ -43,34 +41,18 @@ func (s *TodoService) GetTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	queries := data.New(s.DB)
-	todos, err := queries.GetTodo(context.Background(), int64(id))
+	todo, _ := queries.GetTodo(context.Background(), int64(id))
 	json.NewEncoder(w).Encode(response{
 		Message: "Get Todo",
 		Data: map[string]interface{}{
-			"todos": todos,
+			"todo": &todo,
 		},
 	})
 }
 
-type TodoRequest struct {
-	*data.Todo
-}
-
-func (a *TodoRequest) Bind(r *http.Request) error {
-	if a.Todo == nil {
-		return errors.New("missing required Todo fields")
-	}
-	return nil
-}
-
 func (s *TodoService) CreateTodo(w http.ResponseWriter, r *http.Request) {
-	fields := &TodoRequest{}
-	if err := render.Bind(r, fields); err != nil {
-		json.NewEncoder(w).Encode(response{
-			Message: "Failed Create Todo",
-		})
-		return
-	}
+	var fields data.Todo
+	_ = json.NewDecoder(r.Body).Decode(&fields)
 	queries := data.New(s.DB)
 	todo, _ := queries.CreateTodo(context.Background(), data.CreateTodoParams{
 		Title: fields.Title,
@@ -85,22 +67,17 @@ func (s *TodoService) CreateTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *TodoService) UpdateTodo(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		json.NewEncoder(w).Encode(response{
 			Message: "Failed Update Todo",
 		})
 		return
 	}
-	fields := &TodoRequest{}
-	if err := render.Bind(r, fields); err != nil {
-		json.NewEncoder(w).Encode(response{
-			Message: "Failed Update Todo",
-		})
-		return
-	}
+	var fields data.Todo
+	_ = json.NewDecoder(r.Body).Decode(&fields)
 	queries := data.New(s.DB)
-	todo, err := queries.UpdateTodo(context.Background(), data.UpdateTodoParams{
+	todo, _ := queries.UpdateTodo(context.Background(), data.UpdateTodoParams{
 		ID:    int64(id),
 		Title: fields.Title,
 		Done:  fields.Done,
@@ -114,7 +91,7 @@ func (s *TodoService) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *TodoService) DeleteTodo(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		json.NewEncoder(w).Encode(response{
 			Message: "Failed Delete Todo",
@@ -122,7 +99,7 @@ func (s *TodoService) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	queries := data.New(s.DB)
-	err = queries.DeleteTodo(context.Background(), int64(id))
+	_ = queries.DeleteTodo(context.Background(), int64(id))
 	json.NewEncoder(w).Encode(response{
 		Message: "Delete Todo",
 	})

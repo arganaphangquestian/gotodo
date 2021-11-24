@@ -9,8 +9,7 @@ import (
 	"os"
 
 	todo "github.com/arganaphangquestian/gotodo"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4"
 	"github.com/joho/godotenv"
 )
@@ -31,8 +30,7 @@ func init() {
 }
 
 func main() {
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	r := mux.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
@@ -40,11 +38,11 @@ func main() {
 		})
 	})
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": "OK",
 		})
-	})
+	}).Methods("GET")
 
 	db, err := pgx.Connect(context.Background(), DATABASE_URL)
 	if err != nil {
@@ -55,14 +53,12 @@ func main() {
 		DB: db,
 	}
 
-	// Todo API
-	todoRouter := chi.NewRouter()
-	todoRouter.Get("/", todoService.GetTodos)
-	todoRouter.Get("/{id}", todoService.GetTodo)
-	todoRouter.Post("/", todoService.CreateTodo)
-	todoRouter.Put("/{id}", todoService.UpdateTodo)
-	todoRouter.Delete("/{id}", todoService.DeleteTodo)
-	r.Mount("/api/todo", todoRouter)
+	r.HandleFunc("/api/todo", todoService.GetTodos).Methods("Get")
+	r.HandleFunc("/api/todo/{id}", todoService.GetTodo).Methods("Get")
+	r.HandleFunc("/api/todo", todoService.CreateTodo).Methods("Post")
+	r.HandleFunc("/api/todo/{id}", todoService.UpdateTodo).Methods("Put")
+	r.HandleFunc("/api/todo/{id}", todoService.DeleteTodo).Methods("Delete")
 
+	fmt.Printf("Server running at http://127.0.0.1:%s\n", APPLICATION_PORT)
 	http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", APPLICATION_PORT), r)
 }

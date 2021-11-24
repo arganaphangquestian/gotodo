@@ -5,14 +5,16 @@ go 1.17
 require (
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/joho/godotenv v1.4.0
-	github.com/lib/pq v1.10.4
 )
 
 require (
-	github.com/go-chi/chi/v5 v5.0.7 // indirect
-	github.com/go-chi/render v1.0.1
+	github.com/gorilla/mux v1.8.0
+	github.com/lib/pq v1.10.4 // indirect
+)
+
+require (
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.10.0 // indirect
+	github.com/jackc/pgconn v1.10.0
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.1.1 // indirect

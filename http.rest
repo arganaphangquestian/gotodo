@@ -1,0 +1,14 @@
+### Get All
+GET http://127.0.0.1:8000/api/todo
+
+### GET BY ID
+GET http://127.0.0.1:8000/api/todo/1
+
+### Create
+POST http://127.0.0.1:8000/api/todo
+Content-Type: application/json
+
+{
+  "title": "New Todo from rest",
+  "done": false
+}
